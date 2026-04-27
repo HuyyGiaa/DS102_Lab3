@@ -35,7 +35,6 @@ class SVM:
                     dw = self.w - self.C * (y_i * x_i)
                     db = -self.C * y_i 
 
-                # Cập nhật Gradient
                 self.w -= self.lr * dw
                 self.b -= self.lr * db
 
