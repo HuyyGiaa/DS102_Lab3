@@ -26,7 +26,7 @@ class SVM:
                 x_i = X[i]
                 y_i = y[i] 
                 
-                # Tính giá trị dự đoán cho 1 sample
+                # Calculate predict for 1 sample
                 condition = y_i * (np.dot(x_i, self.w) + self.b) >= 1
                 
                 if condition:
@@ -51,9 +51,8 @@ class SVM:
         y_pred = self.predict(X)
         y_pred_classes = np.where(y_pred >= 0, 1, -1)
         
-        accuracy = accuracy_score(y, y_pred_classes)
         precision = precision_score(y, y_pred_classes)
         recall = recall_score(y, y_pred_classes)
         f1 = f1_score(y, y_pred_classes)
-        
-        return accuracy, precision, recall, f1
+            
+        return precision, recall, f1

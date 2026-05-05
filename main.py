@@ -1,39 +1,52 @@
-from load_data import collect_data
-from SVM import SVM
+from src.load_data import collect_data
+from src.preprocessing import preprocess, balance_data
+from src.SVM import SVM
 import numpy as np
+import matplotlib.pyplot as plt
+from src.comparison_svm_lib import train_svm_sklearn, evaluate, plot_comparison
 
-x_train, y_train = collect_data("train")
-x_test, y_test = collect_data("test")
+def plot_loss(losses):
+    plt.figure(figsize=(10, 4))
+    plt.plot(losses, color='blue', linewidth=1.5)
+    plt.title("Training Loss per ecpoch")
+    plt.xlabel("Epoch")
+    plt.ylabel("Avg Loss")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('output/loss.png', dpi=300)
+    plt.show()
+    
 
-indices = np.arange(x_train.shape[0]) 
-np.random.shuffle(indices)
+if __name__ == "__main__":
+    x_train, y_train = collect_data("train")
+    x_test, y_test = collect_data("test")
 
-normal_indices = np.where(y_train == 1)[0]
-pneumonia_indices = np.where(y_train == -1)[0]
+    model_from_scratch = SVM(
+        lr=0.0001, 
+        n_epochs=50
+    )
 
-# 2. Lấy số lượng bằng với nhóm thiểu số (1341)
-min_samples = len(normal_indices)
-# Chọn ngẫu nhiên 1341 ảnh viêm phổi từ 3875 ảnh
-pneumonia_indices_balanced = np.random.choice(pneumonia_indices, min_samples, replace=False)
+    x_train, y_train = balance_data(x_train, y_train)
+    x_train, x_test = preprocess(x_train, x_test)
+    
+    y_train = np.where(y_train <= 0, -1, 1)
+    y_test = np.where(y_test <= 0, -1, 1)
+    #Label -1 vs 1
+    model_from_scratch.fit(x_train, y_train)
+    model_from_scratch.predict(x_test)
 
-# 3. Gộp lại và xáo trộn (Shuffle)
-balanced_indices = np.concatenate([normal_indices, pneumonia_indices_balanced])
-np.random.shuffle(balanced_indices)
-
-# 4. Gán lại tập Train đã cân bằng
-X_train_balanced = x_train[balanced_indices]
-y_train_balanced = y_train[balanced_indices]
-
-model = SVM(
-    lr=0.001, 
-    n_epochs=1000
-)
-
-model.fit(X_train_balanced, y_train_balanced)
-model.predict(x_test)
-
-accuracy, precision, recall, f1 = model.metrics(X_train_balanced, y_train_balanced)
-print(f"Accuracy: {accuracy}")
-print(f"Precision: {precision}")
-print(f"Recall: {recall}")
-print(f"F1 score: {f1}")
+    precision_from_scratch, recall_from_scratch, f1_from_sractch = model_from_scratch.metrics(x_train, y_train)
+    print(f"Precision: {precision_from_scratch}")
+    print(f"Recall: {recall_from_scratch}")
+    print(f"F1 score: {f1_from_sractch}")
+    results_from_scratch = [precision_from_scratch, recall_from_scratch, f1_from_sractch]
+    
+    plot_loss(model_from_scratch.losses)
+    
+    # model from sklearn
+    model_sklearn = train_svm_sklearn(x_train, y_train)
+    metrics_sklearn = evaluate(model_sklearn, x_test, y_test)
+    results_from_sklearn = list(metrics_sklearn)
+    
+    plot_comparison(results_from_sklearn, results_from_scratch)
+    

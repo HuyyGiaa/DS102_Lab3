@@ -1,0 +1,6 @@
+archive/
+output/
+__pycache__/
+*.pyc
+.DS_Store
+notebooks/
