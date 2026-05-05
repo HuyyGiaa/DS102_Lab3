@@ -1,8 +1,9 @@
 import numpy as np
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from tqdm import tqdm
 
 class SVM:
-    def __init__(self, C: float = 1.0, lr: float = 0.01, n_epochs: int = 1000):
+    def __init__(self, lr: float, n_epochs: int, C: float = 1.0):
         self.C = C
         self.lr = lr
         self.n_epochs = n_epochs
@@ -15,7 +16,7 @@ class SVM:
         self.w = np.zeros(n_features)
         self.b = 0.0
 
-        for epoch in range(self.n_epochs):
+        for epoch in tqdm(range(self.n_epochs), desc="Training: "):
             y_pred_full = self.predict(X)
             loss = self.loss_fn(y, y_pred_full)
             self.losses.append(loss)
